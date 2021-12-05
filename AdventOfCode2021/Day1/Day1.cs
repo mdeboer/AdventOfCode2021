@@ -14,18 +14,18 @@ namespace AdventOfCode2021.Day1
         {
             int[] readings = await ReadInput("input.txt", cancellationToken);
 
-            if (readings.Length < 3)
-                throw new PuzzleInputException("Not enough readings to do calculation.");
-
             return new[]
             {
-                await Part1(readings, cancellationToken),
-                await Part2(readings, cancellationToken)
+                Part1(readings, cancellationToken),
+                Part2(readings, cancellationToken)
             };
         }
 
-        private async Task<string> Part1(int[] readings, CancellationToken cancellationToken)
+        private string Part1(int[] readings, CancellationToken cancellationToken)
         {
+            if (readings.Length < 2)
+                throw new PuzzleInputException("Not enough readings to do calculation.");
+            
             int timesIncreased = 0;
             int lastReading = -1;
 
@@ -43,8 +43,11 @@ namespace AdventOfCode2021.Day1
             return timesIncreased.ToString();
         }
 
-        private async Task<string> Part2(int[] readings, CancellationToken cancellationToken)
+        private string Part2(int[] readings, CancellationToken cancellationToken)
         {
+            if (readings.Length < 3)
+                throw new PuzzleInputException("Not enough readings to do calculation.");
+            
             int timesIncreased = 0;
             int currentPos = 0;
             int lastSum = -1;

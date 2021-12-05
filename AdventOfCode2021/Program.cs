@@ -7,7 +7,7 @@ namespace AdventOfCode2021
 {
     public class Program
     {
-        public static async Task Main(string[] args)
+        public static void Main(string[] args)
         {
             // List of days / puzzles to solve.
             Dictionary<int, Task<IEnumerable<string>>> puzzles = new()
