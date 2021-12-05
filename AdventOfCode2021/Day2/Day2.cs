@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AdventOfCode2021.Exception;
@@ -12,24 +11,23 @@ namespace AdventOfCode2021.Day2
     {
         public async Task<IEnumerable<string>> SolveAsync(CancellationToken cancellationToken = default)
         {
-            List<(Direction, int)> readings = await ReadInput("input.txt", cancellationToken);
+            List<(Direction, int)> commands = await ReadInput("input.txt", cancellationToken);
 
             return new[]
             {
-                Part1(readings, cancellationToken),
-                Part2(readings, cancellationToken)
+                Part1(commands, cancellationToken),
+                Part2(commands, cancellationToken)
             };
         }
 
-        private string Part1(List<(Direction, int)> readings, CancellationToken cancellationToken)
+        private string Part1(IEnumerable<(Direction, int)> commands, CancellationToken cancellationToken)
         {
             int x = 0;
             int y = 0;
 
-            foreach ((Direction direction, int steps) in readings)
+            foreach ((Direction direction, int steps) in commands)
             {
-                if (cancellationToken.IsCancellationRequested)
-                    throw new TaskCanceledException();
+                cancellationToken.ThrowIfCancellationRequested();
 
                 switch (direction)
                 {
@@ -51,16 +49,15 @@ namespace AdventOfCode2021.Day2
             return (x * y).ToString();
         }
 
-        private string Part2(List<(Direction, int)> readings, CancellationToken cancellationToken)
+        private string Part2(IEnumerable<(Direction, int)> commands, CancellationToken cancellationToken)
         {
             int x = 0;
             int y = 0;
             int aim = 0;
 
-            foreach ((Direction direction, int steps) in readings)
+            foreach ((Direction direction, int steps) in commands)
             {
-                if (cancellationToken.IsCancellationRequested)
-                    throw new TaskCanceledException();
+                cancellationToken.ThrowIfCancellationRequested();
 
                 switch (direction)
                 {
@@ -72,7 +69,7 @@ namespace AdventOfCode2021.Day2
                         break;
                     case Direction.Forward:
                         x += steps;
-                        y += (aim * steps);
+                        y += aim * steps;
                         break;
                 }
             }
@@ -84,7 +81,7 @@ namespace AdventOfCode2021.Day2
         }
 
         /// <summary>
-        ///     Read input file (direction and steps)
+        ///     Read commands from input file.
         /// </summary>
         /// <param name="file">File name (not including path).</param>
         /// <param name="cancellationToken"></param>
@@ -101,8 +98,7 @@ namespace AdventOfCode2021.Day2
 
             foreach (string reading in rawReadings)
             {
-                if (cancellationToken.IsCancellationRequested)
-                    throw new TaskCanceledException();
+                cancellationToken.ThrowIfCancellationRequested();
 
                 string[] splitReading = reading.Split(' ', 2);
 

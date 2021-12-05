@@ -21,18 +21,17 @@ namespace AdventOfCode2021.Day1
             };
         }
 
-        private string Part1(int[] readings, CancellationToken cancellationToken)
+        private string Part1(IReadOnlyCollection<int> readings, CancellationToken cancellationToken)
         {
-            if (readings.Length < 2)
+            if (readings.Count < 2)
                 throw new PuzzleInputException("Not enough readings to do calculation.");
-            
+
             int timesIncreased = 0;
             int lastReading = -1;
 
             foreach (int reading in readings)
             {
-                if (cancellationToken.IsCancellationRequested)
-                    throw new TaskCanceledException();
+                cancellationToken.ThrowIfCancellationRequested();
 
                 if (lastReading >= 0 && reading > lastReading)
                     timesIncreased++;
@@ -43,19 +42,18 @@ namespace AdventOfCode2021.Day1
             return timesIncreased.ToString();
         }
 
-        private string Part2(int[] readings, CancellationToken cancellationToken)
+        private string Part2(IReadOnlyCollection<int> readings, CancellationToken cancellationToken)
         {
-            if (readings.Length < 3)
+            if (readings.Count < 3)
                 throw new PuzzleInputException("Not enough readings to do calculation.");
-            
+
             int timesIncreased = 0;
             int currentPos = 0;
             int lastSum = -1;
 
             while (true)
             {
-                if (cancellationToken.IsCancellationRequested)
-                    throw new TaskCanceledException();
+                cancellationToken.ThrowIfCancellationRequested();
 
                 int[] window = readings.Skip(currentPos).Take(3).ToArray();
 
