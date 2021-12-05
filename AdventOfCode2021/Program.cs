@@ -13,7 +13,8 @@ namespace AdventOfCode2021
             Dictionary<int, Task<IEnumerable<string>>> puzzles = new()
             {
                 { 1, new Day1.Day1().SolveAsync() },
-                { 2, new Day2.Day2().SolveAsync() }
+                { 2, new Day2.Day2().SolveAsync() },
+                { 3, new Day3.Day3().SolveAsync() }
             };
 
             // Wait untill all puzzles are solved.
