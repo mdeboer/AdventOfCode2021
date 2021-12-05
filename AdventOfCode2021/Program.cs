@@ -12,7 +12,8 @@ namespace AdventOfCode2021
             // List of days / puzzles to solve.
             Dictionary<int, Task<IEnumerable<string>>> puzzles = new()
             {
-                { 1, new Day1.Day1().SolveAsync() }
+                { 1, new Day1.Day1().SolveAsync() },
+                { 2, new Day2.Day2().SolveAsync() }
             };
 
             // Wait untill all puzzles are solved.
