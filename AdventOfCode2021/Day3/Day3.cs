@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -12,7 +13,7 @@ namespace AdventOfCode2021.Day3
 {
     public class Day3 : IPuzzle
     {
-        public async Task<IEnumerable<string>> SolveAsync(CancellationToken cancellationToken = default)
+        public async Task<(IEnumerable<string>, TimeSpan)> SolveAsync(CancellationToken cancellationToken = default)
         {
             IReadOnlyList<string> readings = (await File.ReadAllLinesAsync(
                 Path.Combine(AppContext.BaseDirectory, "Day3", "input.txt"),
@@ -22,11 +23,17 @@ namespace AdventOfCode2021.Day3
             if (readings.Count == 0)
                 throw new PuzzleInputException();
 
-            return new[]
+            Stopwatch sw = Stopwatch.StartNew();
+
+            string[] results =
             {
                 Part1(readings, cancellationToken),
                 Part2(readings, cancellationToken)
             };
+
+            sw.Stop();
+
+            return (results, sw.Elapsed);
         }
 
         private string Part1(IReadOnlyList<string> diagnosticReport, CancellationToken cancellationToken)

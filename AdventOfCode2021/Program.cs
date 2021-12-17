@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace AdventOfCode2021
@@ -10,27 +9,27 @@ namespace AdventOfCode2021
         public static void Main(string[] args)
         {
             // List of days / puzzles to solve.
-            Dictionary<int, Task<IEnumerable<string>>> puzzles = new()
+            List<Task<(IEnumerable<string>, TimeSpan)>> puzzles = new()
             {
-                { 1, new Day1.Day1().SolveAsync() },
-                { 2, new Day2.Day2().SolveAsync() },
-                { 3, new Day3.Day3().SolveAsync() }
+                new Day1.Day1().SolveAsync(),
+                new Day2.Day2().SolveAsync(),
+                new Day3.Day3().SolveAsync()
             };
 
             // Wait untill all puzzles are solved.
-            Task.WaitAll(puzzles.Values.ToArray());
+            Task.WaitAll(puzzles.ToArray());
 
             // Output the results
             Console.WriteLine("Advent of Code 2021");
             Console.WriteLine("by Maarten de Boer <maarten@cloudstek.nl>");
             Console.WriteLine();
 
-            foreach (KeyValuePair<int, Task<IEnumerable<string>>> puzzle in puzzles)
+            for (int i = 1; i <= puzzles.Count; i++)
             {
-                string results = string.Join(", ", puzzle.Value.Result);
+                (IEnumerable<string> results, TimeSpan elapsed) = puzzles[i - 1].Result;
 
                 Console.WriteLine(
-                    $"Day {puzzle.Key.ToString().PadLeft(2, '0')}: {results}"
+                    $"Day {i.ToString().PadLeft(2, '0')}: {string.Join(", ", results)} ({elapsed.TotalMilliseconds}ms)"
                 );
             }
         }

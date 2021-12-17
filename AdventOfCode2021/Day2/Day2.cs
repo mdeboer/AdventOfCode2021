@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,15 +10,21 @@ namespace AdventOfCode2021.Day2
 {
     public class Day2 : IPuzzle
     {
-        public async Task<IEnumerable<string>> SolveAsync(CancellationToken cancellationToken = default)
+        public async Task<(IEnumerable<string>, TimeSpan)> SolveAsync(CancellationToken cancellationToken = default)
         {
             List<(Direction, int)> commands = await ReadInput("input.txt", cancellationToken);
 
-            return new[]
+            Stopwatch sw = Stopwatch.StartNew();
+
+            string[] results =
             {
                 Part1(commands, cancellationToken),
                 Part2(commands, cancellationToken)
             };
+
+            sw.Stop();
+
+            return (results, sw.Elapsed);
         }
 
         private string Part1(IEnumerable<(Direction, int)> commands, CancellationToken cancellationToken)
