@@ -1,10 +1,10 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AdventOfCode2021.Exception;
@@ -15,13 +15,10 @@ namespace AdventOfCode2021.Day3
     {
         public async Task<(IEnumerable<string>, TimeSpan)> SolveAsync(CancellationToken cancellationToken = default)
         {
-            IReadOnlyList<string> readings = (await File.ReadAllLinesAsync(
+            BitArray[] readings = await ReadInput(
                 Path.Combine(AppContext.BaseDirectory, "Day3", "input.txt"),
                 cancellationToken
-            )).ToImmutableList();
-
-            if (readings.Count == 0)
-                throw new PuzzleInputException();
+            );
 
             Stopwatch sw = Stopwatch.StartNew();
 
@@ -36,136 +33,129 @@ namespace AdventOfCode2021.Day3
             return (results, sw.Elapsed);
         }
 
-        private string Part1(IReadOnlyList<string> diagnosticReport, CancellationToken cancellationToken)
+        private string Part1(BitArray[] diagnosticReport, CancellationToken cancellationToken)
         {
-            // Get pivoted results
-            string[] pivotedReadings = PivotArray(diagnosticReport, cancellationToken);
+            int numColumns = diagnosticReport[0].Count;
+            int numRows = diagnosticReport.Length;
 
-            // Strings holding the binary values for gamma and epsilon.
-            string gamma = "";
-            string epsilon = "";
+            BitArray gamma = new(numColumns, false);
+            BitArray epsilon = new(numColumns, false);
 
-            foreach (string reading in pivotedReadings)
+            for (int i = 0; i < numColumns; i++)
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                int numPositive = CountPositiveBitsInColumn(diagnosticReport, i, cancellationToken);
 
-                // Count the number of positive and negative bits.
-                int numPositiveBits = Regex.Matches(reading, "1").Count;
-                int numNegativeBits = reading.Length - numPositiveBits;
+                if (numPositive > numRows / 2)
+                    gamma[i] = true;
 
-                // Most dominant bit is 0.
-                gamma += numPositiveBits > numNegativeBits ? "1" : "0";
-                epsilon += numNegativeBits > numPositiveBits ? "1" : "0";
+                epsilon[i] = gamma[i] == false;
             }
-
-            if (gamma.Length == 0 || epsilon.Length == 0)
-                throw new System.Exception("We did an oops.");
 
             // Convert to integer and multiply them.
-            return (Convert.ToInt32(gamma, 2) * Convert.ToInt32(epsilon, 2)).ToString();
+            return (gamma.Reverse().ToInt() * epsilon.Reverse().ToInt()).ToString();
         }
 
-        private string Part2(IReadOnlyList<string> diagnosticReport, CancellationToken cancellationToken)
+        private string Part2(BitArray[] diagnosticReport, CancellationToken cancellationToken)
         {
-            int oxygen = CalculateLifeSupportRating(diagnosticReport, true, cancellationToken);
-            int co2 = CalculateLifeSupportRating(diagnosticReport, false, cancellationToken);
+            List<BitArray> oxygen = diagnosticReport.ToList();
+            List<BitArray> co2 = diagnosticReport.ToList();
 
-            return (oxygen * co2).ToString();
+            int i = 0;
+
+            while ((oxygen.Count > 1 || co2.Count > 1) && cancellationToken.IsCancellationRequested == false)
+            {
+                if (oxygen.Count > 1)
+                {
+                    bool keepOxygen = CountPositiveBitsInColumn(oxygen, i, cancellationToken) >=
+                                      (double)oxygen.Count / 2;
+
+                    oxygen.RemoveAll(r => r[i] != keepOxygen);
+                }
+
+                if (co2.Count > 1)
+                {
+                    bool keepCo2 = CountPositiveBitsInColumn(co2, i, cancellationToken) < (double)co2.Count / 2;
+
+                    co2.RemoveAll(r => r[i] != keepCo2);
+                }
+
+                i++;
+            }
+
+            return (oxygen.First().Reverse().ToInt() * co2.First().Reverse().ToInt()).ToString();
         }
 
         /// <summary>
-        ///     Pivot an array, turning values from a column into a row. For example all values of column 0 from every row
-        ///     concatted becomes the first row and so on.
+        ///     Count number of positive bits at a position of every BitArray in the list.
         /// </summary>
-        /// <param name="diagnosticReport"></param>
+        /// <param name="arrays"></param>
+        /// <param name="column"></param>
         /// <param name="cancellationToken"></param>
-        /// <returns>Array with the columns and rows pivotted.</returns>
-        private string[] PivotArray(
-            IReadOnlyList<string> diagnosticReport,
+        /// <returns></returns>
+        private int CountPositiveBitsInColumn(
+            IEnumerable<BitArray> arrays,
+            int column,
             CancellationToken cancellationToken = default
         )
         {
-            // Get the length of the first line of the report.
-            int numColumns = diagnosticReport[0].Length;
+            int result = 0;
 
-            // Create an array of <length> strings to fill later.
-            string[] swappedReadings = Enumerable.Repeat("", numColumns).ToArray();
-
-            // Swap columns to rows.
-            foreach (string reading in diagnosticReport)
+            foreach (BitArray array in arrays)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                // Read every character (column) of the row and append its value to the correct result row.
-                for (int i = 0; i < numColumns; i++)
-                    swappedReadings[i] += reading[i];
+                if (array[column])
+                    result++;
             }
 
-            foreach (string swappedReading in swappedReadings)
-                if (Regex.IsMatch(swappedReading, "(0|1)+") == false)
-                    throw new PuzzleInputException();
-
-            return swappedReadings;
+            return result;
         }
 
         /// <summary>
-        ///     Calculate a part of the life support rating, either for the oxygen generator or the CO2 scrubber.
+        ///     Read input into an array of BitArray.
         /// </summary>
-        /// <param name="diagnosticReport"></param>
-        /// <param name="oxygen">
-        ///     If true, calculate the rating for the oxygen generator. Otherwise calculate the rating for the CO2
-        ///     scrubber.
-        /// </param>
+        /// <param name="file"></param>
         /// <param name="cancellationToken"></param>
-        /// <returns>Life support rating as integer.</returns>
-        private int CalculateLifeSupportRating(
-            IReadOnlyList<string> diagnosticReport,
-            bool oxygen,
-            CancellationToken cancellationToken = default
-        )
+        /// <returns>Array of BitArray containing all readings</returns>
+        /// <exception cref="PuzzleInputException"></exception>
+        private async Task<BitArray[]> ReadInput(string file, CancellationToken cancellationToken)
         {
-            // Get pivoted input.
-            string[] pivotResults = PivotArray(diagnosticReport, cancellationToken);
+            int reportLength = File.ReadLines(file).Count();
 
-            // Working set of results.
-            List<string> results = diagnosticReport.ToList();
+            if (reportLength == 0)
+                throw new PuzzleInputException();
 
-            // Current column position.
-            int position = 0;
+            BitArray[] report = new BitArray[reportLength];
 
-            // Reduce results until we have one value left.
-            while (results.Count > 1)
+            await using (FileStream fs = File.OpenRead(file))
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                using (StreamReader sr = new(fs, Encoding.ASCII))
+                {
+                    int i = 0;
 
-                // Count the number of positive and negative bits.
-                int numPositiveBits = Regex.Matches(pivotResults[position], "1").Count;
-                int numNegativeBits = pivotResults[position].Length - numPositiveBits;
+                    while (sr.EndOfStream == false && cancellationToken.IsCancellationRequested == false)
+                    {
+                        string? line = await sr.ReadLineAsync();
 
-                // Boolean indicating which bit value to keep.
-                bool valueToKeep =
-                    oxygen && numPositiveBits > numNegativeBits
-                    || oxygen == false && numPositiveBits < numNegativeBits
-                    || numPositiveBits == numNegativeBits && oxygen;
+                        if (line == null)
+                            continue;
 
-                // Reduce results by keeping only the elements with the correct value at the current column position.
-                results = results.FindAll(r => r[position] == '1' == valueToKeep);
+                        report[i] = new BitArray(line.Length);
 
-                // Stop if we recuded the results to a single value.
-                if (results.Count == 1)
-                    break;
+                        int x = 0;
 
-                // Pivot reduced results.
-                pivotResults = PivotArray(results, cancellationToken);
+                        foreach (char c in line)
+                        {
+                            report[i][x] = c == '1';
+                            x++;
+                        }
 
-                // Advance column position for the reduced results in the next iteration.
-                position++;
-
-                if (position >= pivotResults.Length)
-                    throw new System.Exception("We did an oops.");
+                        i++;
+                    }
+                }
             }
 
-            return Convert.ToInt32(results.First(), 2);
+            return report;
         }
     }
 }
