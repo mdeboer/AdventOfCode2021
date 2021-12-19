@@ -15,7 +15,8 @@ namespace AdventOfCode2021
                 new Day2.Day2().SolveAsync(),
                 new Day3.Day3().SolveAsync(),
                 new Day4.Day4().SolveAsync(),
-                new Day5.Day5().SolveAsync()
+                new Day5.Day5().SolveAsync(),
+                new Day6.Day6().SolveAsync()
             };
 
             // Wait untill all puzzles are solved.
