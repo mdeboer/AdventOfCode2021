@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -52,9 +51,13 @@ namespace AdventOfCode2021.Day5
             }
 
             // Get the number of points where at least two lines overlap.
-            int dangerousOverlap = matrix.Cast<int>().Count(i => i >= 2);
+            int res = 0;
 
-            return dangerousOverlap.ToString();
+            foreach (int x in matrix)
+                if (x >= 2)
+                    ++res;
+
+            return res.ToString();
         }
 
         private string Part2(List<Line> lines, Point bottomRight, CancellationToken cancellationToken)
@@ -71,9 +74,13 @@ namespace AdventOfCode2021.Day5
             }
 
             // Get the number of points where at least two lines overlap.
-            int dangerousOverlap = matrix.Cast<int>().Count(i => i >= 2);
+            int res = 0;
 
-            return dangerousOverlap.ToString();
+            foreach (int x in matrix)
+                if (x >= 2)
+                    ++res;
+
+            return res.ToString();
         }
 
         private async Task<(List<Line>, Point)> ReadInput(string file, CancellationToken cancellationToken = default)
