@@ -61,7 +61,7 @@ namespace AdventOfCode2021.Day1
             while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-
+                
                 int[] window = readings.Skip(currentPos).Take(3).ToArray();
 
                 // Skip if we haven't got enough readings left for another window.
@@ -95,14 +95,7 @@ namespace AdventOfCode2021.Day1
                 cancellationToken
             );
 
-            try
-            {
-                return Array.ConvertAll(rawReadings, int.Parse);
-            }
-            catch (System.Exception)
-            {
-                throw new PuzzleInputException();
-            }
+            return Array.ConvertAll(rawReadings, int.Parse);
         }
     }
 }
