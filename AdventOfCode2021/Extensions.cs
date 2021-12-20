@@ -39,5 +39,23 @@ namespace AdventOfCode2021
 
             return result;
         }
+
+        /// <summary>
+        ///     Calculate median from sequence of integers.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns>Median value</returns>
+        public static int Median(this int[] input)
+        {
+            int[] arr = new int[input.Length];
+
+            Array.Copy(input, 0, arr, 0, input.Length);
+            Array.Sort(arr);
+
+            if (arr.Length % 2 == 0)
+                return (arr[arr.Length / 2] + arr[(arr.Length + 1) / 2]) / 2;
+
+            return arr[(arr.Length + 1) / 2];
+        }
     }
 }
