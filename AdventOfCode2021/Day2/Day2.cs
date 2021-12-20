@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using AdventOfCode2021.Exception;
@@ -12,7 +14,9 @@ namespace AdventOfCode2021.Day2
     {
         public async Task<(IEnumerable<string>, TimeSpan)> SolveAsync(CancellationToken cancellationToken = default)
         {
-            List<(Direction, int)> commands = await ReadInput("input.txt", cancellationToken);
+            List<(Direction, int)> commands = await ReadInput(
+                Path.Combine(AppContext.BaseDirectory, "Day2", "input.txt"),
+                cancellationToken);
 
             Stopwatch sw = Stopwatch.StartNew();
 
@@ -96,35 +100,43 @@ namespace AdventOfCode2021.Day2
         /// <exception cref="PuzzleInputException"></exception>
         private async Task<List<(Direction, int)>> ReadInput(string file, CancellationToken cancellationToken = default)
         {
-            string[] rawReadings = await File.ReadAllLinesAsync(
-                Path.Combine(AppContext.BaseDirectory, "Day2", file),
-                cancellationToken
-            );
-
             List<(Direction, int)> readings = new();
 
-            foreach (string reading in rawReadings)
+            Regex commandRegex = new("^(up|down|forward) ([0-9]+)", RegexOptions.Compiled);
+
+            await using (FileStream fs = File.OpenRead(file))
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                string[] splitReading = reading.Split(' ', 2);
-
-                if (splitReading.Length != 2)
-                    throw new PuzzleInputException();
-
-                switch (splitReading[0].ToLower())
+                using (StreamReader sr = new(fs, Encoding.ASCII))
                 {
-                    case "up":
-                        readings.Add((Direction.Up, int.Parse(splitReading[1])));
-                        break;
-                    case "down":
-                        readings.Add((Direction.Down, int.Parse(splitReading[1])));
-                        break;
-                    case "forward":
-                        readings.Add((Direction.Forward, int.Parse(splitReading[1])));
-                        break;
-                    default:
-                        throw new PuzzleInputException("Invalid direction in input.");
+                    while (sr.EndOfStream == false && cancellationToken.IsCancellationRequested == false)
+                    {
+                        string? line = sr.ReadLine();
+
+                        if (line == null)
+                            throw new PuzzleInputException();
+
+                        Match command = commandRegex.Match(line);
+
+                        if (command.Success == false)
+                            throw new PuzzleInputException();
+
+                        int steps = int.Parse(command.Groups[2].Value);
+
+                        switch (command.Groups[1].Value)
+                        {
+                            case "up":
+                                readings.Add((Direction.Up, steps));
+                                break;
+                            case "down":
+                                readings.Add((Direction.Down, steps));
+                                break;
+                            case "forward":
+                                readings.Add((Direction.Forward, steps));
+                                break;
+                            default:
+                                throw new PuzzleInputException("Invalid direction in input.");
+                        }
+                    }
                 }
             }
 
